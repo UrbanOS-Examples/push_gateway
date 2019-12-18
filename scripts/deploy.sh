@@ -6,9 +6,9 @@ echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdi
 echo "Determining image tag for ${TRAVIS_BRANCH} build ..."
 
 if [[ $TRAVIS_BRANCH =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-    export TAGGED_IMAGE="smartcitiesdata/push_gateway:${TRAVIS_BRANCH}"
+    export TAGGED_IMAGE="smartcolumbusos/push_gateway:${TRAVIS_BRANCH}"
 elif [[ $TRAVIS_BRANCH == "master" ]]; then
-    export TAGGED_IMAGE="smartcitiesdata/push_gateway:development"
+    export TAGGED_IMAGE="smartcolumbusos/push_gateway:development"
 else
     echo "Branch should not be pushed to Dockerhub"
     exit 0
