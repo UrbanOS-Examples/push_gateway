@@ -22,7 +22,8 @@ defmodule PushGateway.MixProject do
     [
       {:gen_stage, "~> 0.14"},
       {:jason, "~> 1.1"},
-      {:distillery, "~> 2.1.1"}
+      {:distillery, "~> 2.1.1"},
+      {:credo, "~> 1.1.5"}
     ]
   end
 end

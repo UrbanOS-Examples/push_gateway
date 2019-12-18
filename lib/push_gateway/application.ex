@@ -1,6 +1,5 @@
 defmodule PushGateway.Application do
-  @moduledoc """
-  """
+  @moduledoc false
   use Application
 
   def start(_type, _args) do
