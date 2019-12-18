@@ -21,7 +21,8 @@ defmodule PushGateway.MixProject do
   defp deps do
     [
       {:gen_stage, "~> 0.14"},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:distillery, "~> 2.1.1"}
     ]
   end
 end
