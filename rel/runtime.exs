@@ -25,7 +25,8 @@ endpoints =
 
 config :push_gateway,
   elsa_brokers: endpoints,
-  port: listen_port
+  port: listen_port,
+  topic_prefix: "raw"
 
 config :push_gateway, :brook,
   instance: :push_gateway_brook,

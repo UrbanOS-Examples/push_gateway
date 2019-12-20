@@ -20,10 +20,16 @@ defmodule PushGateway.MixProject do
 
   defp deps do
     [
+      {:elsa, "~> 0.11.1"},
+      {:brook, "~> 0.4.9"},
       {:gen_stage, "~> 0.14"},
       {:jason, "~> 1.1"},
       {:distillery, "~> 2.1.1"},
-      {:credo, "~> 1.1.5"}
+      {:smart_city, "~> 3.11.0"},
+      {:retry, "~> 0.13"},
+      {:smart_city_test, "~> 0.8.0", only: :test},
+      {:credo, "~> 1.1.5", only: :dev},
+      {:placebo, "~> 1.2.2", only: :test}
     ]
   end
 end
