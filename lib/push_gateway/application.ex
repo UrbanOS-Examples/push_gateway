@@ -8,6 +8,7 @@ defmodule PushGateway.Application do
 
     children =
       [
+        {Brook, Application.get_env(:push_gateway, :brook)},
         {PushGateway, init_args},
         consumer_specs(PushGateway.Processor, processors, init_args),
         consumer_specs(PushGateway.Dispatcher, processors, init_args)

@@ -8,6 +8,11 @@ defmodule PushGateway.Event.Handler do
       data_ingest_start: 0
     ]
 
+  import Brook.ViewState,
+    only: [
+      merge: 3
+    ]
+
   @instance :push_gateway
 
   def handle_event(%Brook.Event{type: dataset_update(), data: %SmartCity.Dataset{technical: %{cadence: "∞"}} = dataset}) do
@@ -23,7 +28,7 @@ defmodule PushGateway.Event.Handler do
     wait_for_condition!(fn -> Elsa.create_topic(endpoints(), topic) == :ok end)
     wait_for_condition!(fn -> Elsa.topic?(endpoints(), topic) end)
 
-    :discard
+    merge(:datasets, dataset.id, dataset)
   end
 
   defp wait_for_condition!(function) do

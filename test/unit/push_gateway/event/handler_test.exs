@@ -16,14 +16,9 @@ defmodule PushGateway.Event.HandlerTest do
   @topic_prefix Application.get_env(:push_gateway, :topic_prefix)
 
   setup do
-    {:ok, brook} = Brook.start_link(Application.get_env(:push_gateway, :brook)
-      |> Keyword.put(:instance, @instance))
+    Brook.Test.clear_view_state(@instance, :datasets)
 
     Brook.Test.register(@instance)
-
-    on_exit(fn ->
-      kill(brook)
-    end)
 
     :ok
   end
@@ -55,11 +50,11 @@ defmodule PushGateway.Event.HandlerTest do
       [dataset: dataset]
     end
 
-    test "sends #{data_ingest_start()}", %{dataset: dataset} do
+    test "does not send #{data_ingest_start()}", %{dataset: dataset} do
       refute_receive {:brook_event, %Brook.Event{type: data_ingest_start(), data: ^dataset}}
     end
 
-    test "sends data:receive:start", %{dataset: dataset} do
+    test "does not send data:receive:start", %{dataset: dataset} do
       refute_receive {:brook_event, %Brook.Event{type: "data:receive:start", data: ^dataset}}
     end
   end
@@ -79,12 +74,9 @@ defmodule PushGateway.Event.HandlerTest do
     test "creates topic with retries", %{dataset: dataset} do
       assert_called(Elsa.create_topic(@endpoints, "#{@topic_prefix}-#{dataset.id}"), times(2))
     end
-  end
 
-
-  defp kill(pid) do
-    ref = Process.monitor(pid)
-    Process.exit(pid, :normal)
-    assert_receive {:DOWN, ^ref, _, _, _}
+    test "saves the dataset to its view state", %{dataset: dataset} do
+      assert {:ok, ^dataset} = Brook.ViewState.get(@instance, :datasets, dataset.id)
+    end
   end
 end
