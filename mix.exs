@@ -7,7 +7,9 @@ defmodule PushGateway.MixProject do
       version: "1.0.0-static",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
+      test_paths: test_paths(Mix.env())
     ]
   end
 
@@ -27,9 +29,18 @@ defmodule PushGateway.MixProject do
       {:distillery, "~> 2.1.1"},
       {:smart_city, "~> 3.11.0"},
       {:retry, "~> 0.13"},
-      {:smart_city_test, "~> 0.8.0", only: :test},
+      {:smart_city_test, "~> 0.8.0", only: [:test, :integration]},
       {:credo, "~> 1.1.5", only: :dev},
-      {:placebo, "~> 1.2.2", only: :test}
+      {:placebo, "~> 1.2.2", only: :test},
+      {:divo, "~> 1.1.0", only: [:dev, :integration]},
+      {:divo_kafka, "~> 0.1.1", only: :integration},
+      {:divo_redis, "~> 0.1.0", only: :integration}
     ]
   end
+
+  defp elixirc_paths(env) when env in [:test, :integration], do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  defp test_paths(:integration), do: ["test/integration"]
+  defp test_paths(_), do: ["test/unit"]
 end
