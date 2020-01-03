@@ -25,7 +25,7 @@ defmodule PushGateway.Event.HandlerTest do
 
   describe "receives #{dataset_update()} with the 'push' cadence" do
     setup do
-      dataset = TDG.create_dataset(%{technical: %{cadence: "∞"}})
+      dataset = TDG.create_dataset(%{technical: %{cadence: "continuous"}})
 
       Brook.Test.send(@instance, dataset_update(), "testing", dataset)
 
@@ -64,7 +64,7 @@ defmodule PushGateway.Event.HandlerTest do
       allow(Elsa.create_topic(any(), any()), seq: [{:error, "reason"}, :ok])
       allow(Elsa.topic?(any(), any()), seq: [false, true])
 
-      dataset = TDG.create_dataset(%{technical: %{cadence: "∞"}})
+      dataset = TDG.create_dataset(%{technical: %{cadence: "continuous"}})
 
       Brook.Test.send(@instance, data_ingest_start(), "testing", dataset)
 

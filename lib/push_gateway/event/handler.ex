@@ -15,7 +15,7 @@ defmodule PushGateway.Event.Handler do
 
   @instance :push_gateway
 
-  def handle_event(%Brook.Event{type: dataset_update(), data: %SmartCity.Dataset{technical: %{cadence: "∞"}} = dataset}) do
+  def handle_event(%Brook.Event{type: dataset_update(), data: %SmartCity.Dataset{technical: %{cadence: "continuous"}} = dataset}) do
     :ok = Brook.Event.send(@instance, data_ingest_start(), :push_gateway, dataset)
     :ok = Brook.Event.send(@instance, "data:receive:start", :push_gateway, dataset)
 

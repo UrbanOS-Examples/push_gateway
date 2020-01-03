@@ -17,7 +17,7 @@ defmodule PushGateway.Test do
 
   describe "receives #{dataset_update()} with the 'push' cadence" do
     setup do
-      dataset = TDG.create_dataset(%{technical: %{cadence: "∞"}})
+      dataset = TDG.create_dataset(%{technical: %{cadence: "continuous"}})
 
       Brook.Event.send(@instance, dataset_update(), "testing", dataset)
 
