@@ -16,11 +16,11 @@ defmodule PushGatewayTest do
   @topic_prefix Application.get_env(:push_gateway, :topic_prefix)
   @assigned_dataset_id Application.get_env(:push_gateway, :assigned_dataset_id)
 
-  @test_message_one DSRCMessages.bsm_message()
-  @test_message_two DSRCMessages.srm_message()
+  @test_bsm_message DSRCMessages.bsm_message()
+  @test_srm_message DSRCMessages.srm_message()
 
   setup_all do
-    UdpSourceSocket.start_link(message_loop: [@test_message_one, @test_message_two], port: 5555)
+    UdpSourceSocket.start_link(message_loop: [@test_bsm_message, @test_srm_message], port: 5555)
     Brook.Test.clear_view_state(@instance, :datasets)
     Brook.Test.register(@instance)
 
@@ -38,8 +38,8 @@ defmodule PushGatewayTest do
 
     expected_messages =
       MapSet.new([
-        %{messageType: "BSM", messageBody: Jason.encode!(@test_message_one)},
-        %{messageType: "SRM", messageBody: Jason.encode!(@test_message_two)}
+        %{messageType: "BSM", messageBody: Jason.encode!(@test_bsm_message)},
+        %{messageType: "SRM", messageBody: Jason.encode!(@test_srm_message)}
       ])
 
     eventually(
