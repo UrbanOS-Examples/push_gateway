@@ -13,7 +13,7 @@ defmodule PushGateway.InitServer do
         :ignore
 
       {:ok, dataset} ->
-        PushGateway.DatasetSupervisor.ensure_started([dataset: dataset])
+        PushGateway.DatasetSupervisor.ensure_started(dataset: dataset)
     end
   end
 

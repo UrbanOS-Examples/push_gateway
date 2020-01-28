@@ -32,7 +32,7 @@ defmodule PushGateway.Event.Handler do
         data: %SmartCity.Dataset{technical: %{cadence: "continuous"}} = dataset
       }) do
     if dataset.id == assigned_dataset_id() do
-      {:ok, _} = PushGateway.DatasetSupervisor.ensure_started([dataset: dataset])
+      {:ok, _} = PushGateway.DatasetSupervisor.ensure_started(dataset: dataset)
 
       merge(:datasets, dataset.id, dataset)
     else

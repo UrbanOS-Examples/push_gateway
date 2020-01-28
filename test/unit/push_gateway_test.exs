@@ -31,15 +31,19 @@ defmodule PushGatewayTest do
     allow(Elsa.create_topic(any(), any()), return: :ok)
     allow(Elsa.topic?(any(), any()), return: true)
     allow(Elsa.produce(any(), any(), any(), partition: 0), return: :ok)
-    allow(Elsa.Supervisor.init(any()), return: Supervisor.init([TestHelper.dummy_child_spec()], strategy: :one_for_all), meck_options: [:passthrough])
+
+    allow(Elsa.Supervisor.init(any()),
+      return: Supervisor.init([TestHelper.dummy_child_spec()], strategy: :one_for_all),
+      meck_options: [:passthrough]
+    )
 
     dataset = TDG.create_dataset(%{id: @assigned_dataset_id, technical: %{cadence: "continuous"}})
     Brook.Test.send(@instance, data_ingest_start(), :unit, dataset)
 
     expected_messages =
       MapSet.new([
-        %{messageType: "BSM", messageBody: Jason.encode!(@test_bsm_message)},
-        %{messageType: "SRM", messageBody: Jason.encode!(@test_srm_message)}
+        %{messageType: "BSM", sourceDevice: "udp-source-socket", messageBody: Jason.encode!(@test_bsm_message)},
+        %{messageType: "SRM", sourceDevice: "udp-source-socket", messageBody: Jason.encode!(@test_srm_message)}
       ])
 
     eventually(

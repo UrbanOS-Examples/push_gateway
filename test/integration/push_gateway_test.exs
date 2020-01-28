@@ -67,6 +67,7 @@ defmodule PushGateway.Test do
                    %{
                      "messageType" => "BSM",
                      "timestamp" => _,
+                     "sourceDevice" => "udp-source-socket",
                      "messageBody" => %{"coreData" => %{"angle" => ^test_message_angle}}
                    }
                    | _

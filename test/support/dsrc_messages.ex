@@ -1,4 +1,5 @@
 defmodule DSRCMessages do
+  @moduledoc false
   def bsm_message() do
     %Kitt.Message.BSM{
       coreData: %Kitt.Message.BSM.CoreData{
