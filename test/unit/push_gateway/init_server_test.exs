@@ -38,6 +38,7 @@ defmodule PushGateway.InitServerTest do
         DynamicSupervisor.start_child(any(), any()),
         return: {:ok, :good}
       )
+
       allow(
         DynamicSupervisor.terminate_child(any(), any()),
         return: :ok
@@ -65,6 +66,7 @@ defmodule PushGateway.InitServerTest do
         DynamicSupervisor.start_child(any(), any()),
         return: {:error, :bad}
       )
+
       allow(
         DynamicSupervisor.terminate_child(any(), any()),
         return: :ok

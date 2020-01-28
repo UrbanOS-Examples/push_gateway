@@ -82,6 +82,7 @@ defmodule PushGateway.Event.HandlerTest do
         DynamicSupervisor.start_child(any(), any()),
         return: {:ok, :good}
       )
+
       allow(
         DynamicSupervisor.terminate_child(any(), any()),
         return: :ok
@@ -110,17 +111,22 @@ defmodule PushGateway.Event.HandlerTest do
 
   describe "idempotentency of #{data_ingest_start()} event" do
     test "it is idmptnt" do
-      allow(PushGateway.DatasetSupervisor.init(any()), return: Supervisor.init([TestHelper.dummy_child_spec()], strategy: :one_for_all), meck_options: [:passthrough])
+      allow(PushGateway.DatasetSupervisor.init(any()),
+        return: Supervisor.init([TestHelper.dummy_child_spec()], strategy: :one_for_all),
+        meck_options: [:passthrough]
+      )
 
       dataset = TDG.create_dataset(%{id: @assigned_dataset_id, technical: %{cadence: "continuous"}})
 
       Brook.Test.send(@instance, data_ingest_start(), "testing", dataset)
 
-      assert %{active: 1, specs: 1, supervisors: 1, workers: 0} == DynamicSupervisor.count_children(PushGateway.DynamicSupervisor)
+      assert %{active: 1, specs: 1, supervisors: 1, workers: 0} ==
+               DynamicSupervisor.count_children(PushGateway.DynamicSupervisor)
 
       Brook.Test.send(@instance, data_ingest_start(), "testing", dataset)
 
-      assert %{active: 1, specs: 1, supervisors: 1, workers: 0} == DynamicSupervisor.count_children(PushGateway.DynamicSupervisor)
+      assert %{active: 1, specs: 1, supervisors: 1, workers: 0} ==
+               DynamicSupervisor.count_children(PushGateway.DynamicSupervisor)
     end
   end
 

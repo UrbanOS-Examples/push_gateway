@@ -36,11 +36,16 @@ defmodule PushGateway.Processor do
     Map.update(message, "payloadData", %{}, &Kitt.decode!/1)
   end
 
-  def wrap_message_body(%{"timestamp" => timestamp, "payloadData" => %{__struct__: message_type} = message}) do
+  def wrap_message_body(%{
+        "timestamp" => timestamp,
+        "deviceSource" => sourceDevice,
+        "payloadData" => %{__struct__: message_type} = message
+      }) do
     %{
       messageType: String.replace(Atom.to_string(message_type), "Elixir.Kitt.Message.", ""),
       messageBody: Jason.encode!(message),
-      timestamp: DateTime.from_unix!(timestamp, :millisecond)
+      timestamp: DateTime.from_unix!(timestamp, :millisecond),
+      sourceDevice: sourceDevice
     }
   end
 end
