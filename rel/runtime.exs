@@ -1,6 +1,7 @@
 use Mix.Config
 
 required_envars = [
+  "ASSIGNED_DATASET_ID",
   "KAFKA_BROKERS",
   "REDIS_HOST",
   "LISTEN_PORT"
@@ -12,6 +13,7 @@ Enum.each(required_envars, fn var ->
   end
 end)
 
+assigned_dataset_id = System.get_env("ASSIGNED_DATASET_ID")
 kafka_brokers = System.get_env("KAFKA_BROKERS")
 redis_host = System.get_env("REDIS_HOST")
 listen_port = System.get_env("LISTEN_PORT") |> String.to_integer()
@@ -26,7 +28,8 @@ endpoints =
 config :push_gateway,
   elsa_brokers: endpoints,
   port: listen_port,
-  topic_prefix: "raw"
+  topic_prefix: "raw",
+  assigned_dataset_id: assigned_dataset_id
 
 config :push_gateway, :brook,
   instance: :push_gateway_brook,

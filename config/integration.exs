@@ -14,7 +14,8 @@ config :push_gateway,
   processors: 2,
   min_batch: 75,
   max_batch: 100,
-  topic_prefix: "raw"
+  topic_prefix: "raw",
+  assigned_dataset_id: "a-pushed-dataset-uuid"
 
 config :push_gateway, :brook,
   instance: :push_gateway,
@@ -34,4 +35,3 @@ config :push_gateway, :brook,
     module: Brook.Storage.Redis,
     init_arg: [redix_args: [host: host], namespace: "push-gateway:view"]
   ]
-

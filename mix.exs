@@ -26,6 +26,7 @@ defmodule PushGateway.MixProject do
       {:brook, "~> 0.4.9"},
       {:gen_stage, "~> 0.14"},
       {:jason, "~> 1.1"},
+      {:kitt, "~> 0.3.0"},
       {:distillery, "~> 2.1.1"},
       {:smart_city, "~> 3.11.0"},
       {:retry, "~> 0.13"},
