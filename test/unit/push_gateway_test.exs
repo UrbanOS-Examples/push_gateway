@@ -2,59 +2,68 @@ defmodule PushGatewayTest do
   @moduledoc false
 
   use ExUnit.Case
-  import ExUnit.CaptureLog
+  use Placebo
+
+  import SmartCity.Event,
+    only: [
+      data_ingest_start: 0
+    ]
+
+  alias SmartCity.TestDataGenerator, as: TDG
+  import SmartCity.TestHelper, only: [eventually: 3]
+
+  @instance :push_gateway
+  @topic_prefix Application.get_env(:push_gateway, :topic_prefix)
+  @assigned_dataset_id Application.get_env(:push_gateway, :assigned_dataset_id)
+
+  @test_bsm_message DSRCMessages.bsm_message()
+  @test_srm_message DSRCMessages.srm_message()
 
   setup_all do
-    UdpSourceSocket.start_link(message_loop: ["a", "b", "c", "d", "e"], port: 5555)
+    UdpSourceSocket.start_link(message_loop: [@test_bsm_message, @test_srm_message], port: 5555)
+    Brook.Test.clear_view_state(@instance, :datasets)
+    Brook.Test.register(@instance)
 
     :ok
   end
 
-  test "logs messages with JSON encoding" do
-    log_messages =
-      capture_log(fn ->
-        Process.sleep(15_000)
-      end)
+  test "sends messages to kafka with JSON encoding" do
+    allow(Elsa.create_topic(any(), any()), return: :ok)
+    allow(Elsa.topic?(any(), any()), return: true)
+    allow(Elsa.produce(any(), any(), any(), partition: 0), return: :ok)
+    allow(Elsa.Supervisor.init(any()), return: Supervisor.init([TestHelper.dummy_child_spec()], strategy: :one_for_all), meck_options: [:passthrough])
 
-    %{"messages" => raw_messages} = Regex.named_captures(~r/Received [0-9]+ messages: (?<messages>.*)/, log_messages)
-
-    actual_messages = MapSet.new(Jason.decode!(raw_messages))
+    dataset = TDG.create_dataset(%{id: @assigned_dataset_id, technical: %{cadence: "continuous"}})
+    Brook.Test.send(@instance, data_ingest_start(), :unit, dataset)
 
     expected_messages =
       MapSet.new([
-        %{"message" => "a"},
-        %{"message" => "b"},
-        %{"message" => "c"},
-        %{"message" => "d"},
-        %{"message" => "e"}
+        %{messageType: "BSM", messageBody: Jason.encode!(@test_bsm_message)},
+        %{messageType: "SRM", messageBody: Jason.encode!(@test_srm_message)}
       ])
 
-    assert actual_messages == expected_messages
-  end
-end
+    eventually(
+      fn ->
+        actual_messages =
+          get_produced_messages("#{@topic_prefix}-#{dataset.id}")
+          |> strip_timestamps()
+          |> MapSet.new()
 
-defmodule UdpSourceSocket do
-  use GenServer
-
-  def start_link(init_args) do
-    GenServer.start_link(__MODULE__, init_args, name: __MODULE__)
-  end
-
-  def init(init_args) do
-    port = Keyword.get(init_args, :port, 5555)
-    message_loop = Keyword.get(init_args, :message_loop)
-
-    {:ok, socket} = :gen_udp.open(port - 1)
-
-    :timer.send_interval(100, :push_message)
-
-    {:ok, %{socket: socket, port: port, message_loop: message_loop}}
+        assert expected_messages == actual_messages
+      end,
+      500,
+      20
+    )
   end
 
-  def handle_info(:push_message, %{socket: socket, port: port, message_loop: message_loop} = state) do
-    [message | rest] = message_loop
-    :gen_udp.send(socket, {127, 0, 0, 1}, port, Jason.encode!(%{message: message}))
+  defp get_produced_messages(topic) do
+    capture(Elsa.produce(any(), topic, any(), partition: 0), 3)
+    |> Enum.map(&Jason.decode!(&1, keys: :atoms))
+  rescue
+    _ -> []
+  end
 
-    {:noreply, %{state | message_loop: rest ++ [message]}}
+  defp strip_timestamps(messages) do
+    Enum.map(messages, &Map.delete(&1, :timestamp))
   end
 end

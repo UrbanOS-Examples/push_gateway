@@ -1,6 +1,6 @@
 defmodule PushGateway.Event.Handler do
+  @moduledoc false
   use Brook.Event.Handler
-  use Retry
 
   import SmartCity.Event,
     only: [
@@ -15,42 +15,32 @@ defmodule PushGateway.Event.Handler do
 
   @instance :push_gateway
 
-  def handle_event(%Brook.Event{type: dataset_update(), data: %SmartCity.Dataset{technical: %{cadence: "continuous"}} = dataset}) do
-    :ok = Brook.Event.send(@instance, data_ingest_start(), :push_gateway, dataset)
-    :ok = Brook.Event.send(@instance, "data:receive:start", :push_gateway, dataset)
+  def handle_event(%Brook.Event{
+        type: dataset_update(),
+        data: %SmartCity.Dataset{technical: %{cadence: "continuous"}} = dataset
+      }) do
+    if dataset.id == assigned_dataset_id() do
+      :ok = Brook.Event.send(@instance, data_ingest_start(), :push_gateway, dataset)
+      :ok = Brook.Event.send(@instance, "data:receive:start", :push_gateway, dataset)
+    end
 
     :discard
   end
 
-  def handle_event(%Brook.Event{type: data_ingest_start(), data: %SmartCity.Dataset{} = dataset}) do
-    topic = topic(dataset)
+  def handle_event(%Brook.Event{
+        type: data_ingest_start(),
+        data: %SmartCity.Dataset{technical: %{cadence: "continuous"}} = dataset
+      }) do
+    if dataset.id == assigned_dataset_id() do
+      {:ok, _} = PushGateway.DatasetSupervisor.ensure_started([dataset: dataset])
 
-    wait_for_condition!(fn -> Elsa.create_topic(endpoints(), topic) == :ok end)
-    wait_for_condition!(fn -> Elsa.topic?(endpoints(), topic) end)
-
-    merge(:datasets, dataset.id, dataset)
-  end
-
-  defp wait_for_condition!(function) do
-    wait exponential_backoff(500) |> Stream.take(5) do
-      function.()
-    after
-      _ -> :ok
+      merge(:datasets, dataset.id, dataset)
     else
-      reason -> raise "Timed out waiting for condition with error #{inspect(reason)}"
+      :discard
     end
   end
 
-  defp endpoints() do
-    Application.get_env(:push_gateway, :elsa_brokers)
+  defp assigned_dataset_id() do
+    Application.get_env(:push_gateway, :assigned_dataset_id)
   end
-
-  defp topic(dataset) do
-    "#{topic_prefix()}-#{dataset.id}"
-  end
-
-  defp topic_prefix() do
-    Application.get_env(:push_gateway, :topic_prefix)
-  end
-
 end

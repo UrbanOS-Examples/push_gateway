@@ -1,8 +1,8 @@
 defmodule PushGateway.Dispatcher do
   @moduledoc false
 
-  require Logger
   use GenStage
+  require Logger
 
   def start_link({number, init_args}) do
     name = :"#{__MODULE__}.#{number}"
@@ -11,6 +11,8 @@ defmodule PushGateway.Dispatcher do
   end
 
   def init(init_args) do
+    producer_name = Keyword.fetch!(init_args, :producer_name)
+    topic = Keyword.fetch!(init_args, :topic)
     processors = Keyword.get(init_args, :processors, 1)
 
     state = %{
@@ -20,12 +22,13 @@ defmodule PushGateway.Dispatcher do
 
     subscription = processors(processors, state.min, state.max)
 
-    {:consumer, %{}, subscribe_to: subscription}
+    {:consumer, %{topic: topic, producer_name: producer_name}, [subscribe_to: subscription]}
   end
 
-  def handle_events(messages, _from, state) do
-    count = Enum.count(messages)
-    Logger.info("Received #{count} messages: #{Jason.encode!(messages)}")
+  def handle_events(messages, _from, %{producer_name: producer_name, topic: topic} = state) do
+    Logger.debug("Dispatching - #{Enum.count(messages)}")
+    encoded_messages = Enum.map(messages, &Jason.encode!/1)
+    Elsa.produce(producer_name, topic, encoded_messages, partition: 0)
 
     {:noreply, [], state}
   end
@@ -40,4 +43,10 @@ defmodule PushGateway.Dispatcher do
   end
 
   defp processor_name(item), do: :"Elixir.PushGateway.Processor.#{item}"
+end
+
+defimpl Jason.Encoder, for: [Tuple] do
+  def encode(tuple, opts) do
+    Jason.Encode.list(Tuple.to_list(tuple), opts)
+  end
 end

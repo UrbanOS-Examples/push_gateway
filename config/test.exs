@@ -6,7 +6,8 @@ config :push_gateway,
   min_batch: 75,
   max_batch: 100,
   elsa_brokers: [localhost: 9092],
-  topic_prefix: "raw"
+  topic_prefix: "raw",
+  assigned_dataset_id: "a-pushed-dataset-uuid"
 
 config :push_gateway, :brook,
   instance: :push_gateway,
