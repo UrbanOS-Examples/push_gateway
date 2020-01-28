@@ -40,7 +40,7 @@ defmodule PushGateway.Event.HandlerTest do
     end
   end
 
-  describe "receives #{dataset_update()} without 'push' cadence but not the one it cares about" do
+  describe "receives #{dataset_update()} with 'push' cadence but not the one it cares about" do
     setup do
       dataset = TDG.create_dataset(%{id: "not-the-push-you-are-looking-for", technical: %{cadence: "continuous"}})
 
