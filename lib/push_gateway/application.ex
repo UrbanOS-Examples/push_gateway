@@ -11,7 +11,7 @@ defmodule PushGateway.Application do
       ]
       |> List.flatten()
 
-    opts = [strategy: :rest_for_one, name: PushGateway.Supervisor]
+    opts = [strategy: :one_for_one, name: PushGateway.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end
