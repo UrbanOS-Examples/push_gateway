@@ -47,5 +47,5 @@ config :push_gateway, :brook,
   handlers: [PushGateway.Event.Handler],
   storage: [
     module: Brook.Storage.Redis,
-    init_arg: [redix_args: [host: host], namespace: "push-gateway:view"]
+    init_arg: [redix_args: [host: redis_host], namespace: "push-gateway:view"]
   ]
