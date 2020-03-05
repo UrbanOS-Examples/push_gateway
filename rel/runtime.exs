@@ -32,7 +32,7 @@ config :push_gateway,
   assigned_dataset_id: assigned_dataset_id
 
 config :push_gateway, :brook,
-  instance: :push_gateway_brook,
+  instance: :push_gateway,
   driver: %{
     module: Brook.Driver.Kafka,
     init_arg: [
