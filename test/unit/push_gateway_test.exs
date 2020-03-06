@@ -40,18 +40,21 @@ defmodule PushGatewayTest do
     dataset = TDG.create_dataset(%{id: @assigned_dataset_id, technical: %{cadence: "continuous"}})
     Brook.Test.send(@instance, data_ingest_start(), :unit, dataset)
 
-    expected_messages =
-      MapSet.new([
-        %{messageType: "BSM", sourceDevice: "udp-source-socket", messageBody: Jason.encode!(@test_bsm_message)},
-        %{messageType: "SRM", sourceDevice: "udp-source-socket", messageBody: Jason.encode!(@test_srm_message)}
-      ])
+    expected_messages = [
+      %{"messageType" => "BSM", "sourceDevice" => "udp-source-socket", "messageBody" => Jason.encode!(@test_bsm_message)},
+      %{"messageType" => "SRM", "sourceDevice" => "udp-source-socket", "messageBody" => Jason.encode!(@test_srm_message)}
+    ]
 
     eventually(
       fn ->
         actual_messages =
           get_produced_messages("#{@topic_prefix}-#{dataset.id}")
+          |> Enum.map(&SmartCity.Data.new/1)
+          |> Enum.map(&elem(&1, 1))
+          |> Enum.map(&Map.get(&1, :payload))
           |> strip_timestamps()
-          |> MapSet.new()
+          |> Enum.uniq()
+          |> Enum.sort_by(&Map.get(&1, "messageType"))
 
         assert expected_messages == actual_messages
       end,
@@ -62,12 +65,11 @@ defmodule PushGatewayTest do
 
   defp get_produced_messages(topic) do
     capture(Elsa.produce(any(), topic, any(), partition: 0), 3)
-    |> Enum.map(&Jason.decode!(&1, keys: :atoms))
   rescue
     _ -> []
   end
 
   defp strip_timestamps(messages) do
-    Enum.map(messages, &Map.delete(&1, :timestamp))
+    Enum.map(messages, &Map.delete(&1, "timestamp"))
   end
 end

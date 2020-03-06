@@ -27,7 +27,7 @@ defmodule PushGateway.Dispatcher do
 
   def handle_events(messages, _from, %{producer_name: producer_name, topic: topic} = state) do
     Logger.debug("Dispatching - #{Enum.count(messages)}")
-    encoded_messages = Enum.map(messages, &Jason.encode!/1)
+    encoded_messages = Enum.map(messages, &encode_as_data_message/1)
     Elsa.produce(producer_name, topic, encoded_messages, partition: 0)
 
     {:noreply, [], state}
@@ -42,7 +42,23 @@ defmodule PushGateway.Dispatcher do
     {processor_name(item), min_demand: min, max_demand: max}
   end
 
+  defp encode_as_data_message(message) do
+    data_message = %{
+      dataset_id: assigned_dataset_id(),
+      payload: message,
+      operational: %{
+        timing: []
+      },
+      _metadata: %{}
+    }
+
+    {:ok, smrt_data_message} = SmartCity.Data.new(data_message)
+
+    Jason.encode!(smrt_data_message)
+  end
+
   defp processor_name(item), do: :"Elixir.PushGateway.Processor.#{item}"
+  defp assigned_dataset_id(), do: Application.get_env(:push_gateway, :assigned_dataset_id)
 end
 
 defimpl Jason.Encoder, for: [Tuple] do
