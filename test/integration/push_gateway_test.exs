@@ -60,7 +60,9 @@ defmodule PushGateway.Test do
           decoded_messages =
             messages
             |> Enum.map(&Map.get(&1, :value))
-            |> Enum.map(&Jason.decode!/1)
+            |> Enum.map(&SmartCity.Data.new/1)
+            |> Enum.map(&elem(&1, 1))
+            |> Enum.map(&Map.get(&1, :payload))
             |> Enum.map(&Map.update(&1, "messageBody", "", fn x -> Jason.decode!(x) end))
 
           assert [
