@@ -38,7 +38,7 @@ config :push_gateway, :brook,
     init_arg: [
       endpoints: endpoints,
       topic: "event-stream",
-      group: "push-gateway-event-stream",
+      group: "push-gateway-event-stream-#{assigned_dataset_id}",
       consumer_config: [
         begin_offset: :earliest
       ]
