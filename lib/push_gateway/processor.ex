@@ -43,7 +43,7 @@ defmodule PushGateway.Processor do
       }) do
     %{
       messageType: String.replace(Atom.to_string(message_type), "Elixir.Kitt.Message.", ""),
-      messageBody: Jason.encode!(message),
+      messageBody: message,
       timestamp: DateTime.from_unix!(timestamp, :millisecond),
       sourceDevice: sourceDevice
     }

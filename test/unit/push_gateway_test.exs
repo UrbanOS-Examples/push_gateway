@@ -18,6 +18,8 @@ defmodule PushGatewayTest do
 
   @test_bsm_message DSRCMessages.bsm_message()
   @test_srm_message DSRCMessages.srm_message()
+  @test_bsm_message_destructed @test_bsm_message |> Jason.encode!() |> Jason.decode!()
+  @test_srm_message_destructed @test_srm_message |> Jason.encode!() |> Jason.decode!()
 
   setup_all do
     UdpSourceSocket.start_link(message_loop: [@test_bsm_message, @test_srm_message], port: 5555)
@@ -41,8 +43,8 @@ defmodule PushGatewayTest do
     Brook.Test.send(@instance, data_ingest_start(), :unit, dataset)
 
     expected_messages = [
-      %{"messageType" => "BSM", "sourceDevice" => "udp-source-socket", "messageBody" => Jason.encode!(@test_bsm_message)},
-      %{"messageType" => "SRM", "sourceDevice" => "udp-source-socket", "messageBody" => Jason.encode!(@test_srm_message)}
+      %{"messageType" => "BSM", "sourceDevice" => "udp-source-socket", "messageBody" => @test_bsm_message_destructed},
+      %{"messageType" => "SRM", "sourceDevice" => "udp-source-socket", "messageBody" => @test_srm_message_destructed}
     ]
 
     eventually(
